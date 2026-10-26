@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>کۆکەرەوەی جووتە ڕستە</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;700&family=Noto+Naskh+Arabic:wght@400;600&display=swap">
+<style>
+/* Layout: one centered column — word card, two sentence fields, 0–5 scale, then your recent pairs and the group tally. */
+:root {
+  --bg: #f2f5f3;
+  --surface: #ffffff;
+  --ink: #15211d;
+  --muted: #5b6b65;
+  --line: #d5ded9;
+  --accent: #1d6b55;
+  --accent-ink: #ffffff;
+  --sun: #e2a72e;
+  --sun-soft: #fbf0d6;
+  --ok: #1d7a47;
+  --ok-soft: #dcf1e4;
+  --bad: #b3372b;
+  --bad-soft: #f8e1dd;
+  --ui: "Noto Kufi Arabic", "Segoe UI", Tahoma, sans-serif;
+  --text: "Noto Naskh Arabic", "Segoe UI", Tahoma, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1614; --surface: #17211e; --ink: #e5ece9; --muted: #98a8a1; --line: #2b3934;
+    --accent: #4fb795; --accent-ink: #0b1411; --sun: #f0bf55; --sun-soft: #3a2f16;
+    --ok: #6fd39a; --ok-soft: #173326; --bad: #f08a7c; --bad-soft: #3d1e1a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1614; --surface: #17211e; --ink: #e5ece9; --muted: #98a8a1; --line: #2b3934;
+  --accent: #4fb795; --accent-ink: #0b1411; --sun: #f0bf55; --sun-soft: #3a2f16;
+  --ok: #6fd39a; --ok-soft: #173326; --bad: #f08a7c; --bad-soft: #3d1e1a;
+  color-scheme: dark;
+}
+html, body { margin: 0; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--ui); font-size: 15px; }
+.wrap {
+  direction: rtl; max-width: 720px; margin: 0 auto;
+  padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 22px;
+}
+header { display: grid; gap: 6px; }
+h1 { font-size: 1.6rem; font-weight: 700; margin: 0; text-wrap: balance; }
+.lead { color: var(--muted); margin: 0; line-height: 1.9; }
+.tally { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: .9rem; color: var(--muted); }
+.tally b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 18px; }
+
+.words-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.label { font-size: .78rem; letter-spacing: .04em; color: var(--muted); font-weight: 500; }
+.words { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip {
+  font-family: var(--text); font-size: 1.45rem; font-weight: 600; line-height: 1.5;
+  padding: 4px 16px 6px; border-radius: 999px; background: var(--sun-soft); color: var(--ink);
+  border: 2px solid var(--sun); display: inline-flex; align-items: center; gap: 8px;
+}
+.chip.used { background: var(--ok-soft); border-color: var(--ok); }
+.chip .where { font-family: var(--ui); font-size: .72rem; color: var(--ok); font-weight: 700; }
+
+.rule { margin: 0; font-size: .88rem; color: var(--muted); line-height: 1.9; }
+
+.field { display: grid; gap: 6px; }
+.field label { font-weight: 500; font-size: .92rem; }
+textarea {
+  font-family: var(--text); font-size: 1.2rem; line-height: 1.8; direction: rtl;
+  width: 100%; box-sizing: border-box; min-height: 84px; resize: vertical;
+  padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--line);
+  background: var(--bg); color: var(--ink);
+}
+textarea:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); border-color: var(--accent); }
+.hint { font-size: .8rem; color: var(--muted); min-height: 1.2em; }
+
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; }
+legend { font-weight: 500; font-size: .92rem; padding: 0; margin-bottom: 8px; }
+.scale { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.scale input { position: absolute; opacity: 0; pointer-events: none; }
+.scale label {
+  display: grid; justify-items: center; gap: 2px; padding: 10px 4px; cursor: pointer;
+  border: 1.5px solid var(--line); border-radius: 10px; background: var(--bg); text-align: center;
+}
+.scale .num { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.scale .txt { font-size: .7rem; color: var(--muted); line-height: 1.5; }
+.scale input:checked + label { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); }
+.scale input:focus-visible + label { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.scale-desc { font-size: .85rem; color: var(--muted); min-height: 1.6em; line-height: 1.8; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button {
+  font-family: var(--ui); font-size: .92rem; font-weight: 500; cursor: pointer;
+  border-radius: 10px; padding: 10px 18px; border: 1.5px solid var(--line);
+  background: var(--surface); color: var(--ink);
+}
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); outline-offset: 2px; }
+.kbd { font-size: .78rem; color: var(--muted); }
+
+.msg { border-radius: 10px; padding: 10px 14px; font-size: .9rem; line-height: 1.8; }
+.msg.err { background: var(--bad-soft); color: var(--bad); }
+.msg.ok { background: var(--ok-soft); color: var(--ok); }
+
+h2 { font-size: 1.05rem; margin: 0; }
+.list { display: grid; gap: 0; }
+.row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 12px 0; border-top: 1px solid var(--line); }
+.row:first-child { border-top: 0; }
+.score-pill { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 2.2em; text-align: center; padding: 2px 8px; border-radius: 8px; background: var(--sun-soft); }
+.pair { font-family: var(--text); font-size: 1.05rem; line-height: 1.8; min-width: 0; overflow-wrap: anywhere; }
+.pair .s2 { color: var(--muted); }
+.row button { padding: 4px 10px; font-size: .78rem; }
+.empty { color: var(--muted); font-size: .9rem; line-height: 1.9; margin: 0; }
+
+.people { display: grid; gap: 8px; }
+.person { display: flex; align-items: center; gap: 10px; }
+.person img { width: 26px; height: 26px; border-radius: 50%; }
+.person .n { flex: 1; min-width: 0; }
+.person .c { font-variant-numeric: tabular-nums; font-weight: 700; }
+
+@media (max-width: 520px) {
+  .scale { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .chip { font-size: 1.25rem; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chip { transition: background-color .2s, border-color .2s; }
+}
+</style>
+<style>
+.consent { font-size: .82rem; color: var(--muted); line-height: 1.9; margin: 0; }
+.trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>کۆکەرەوەی جووتە ڕستە</h1>
+    <p class="lead">بە بەکارهێنانی ئەو سێ وشەیەی خوارەوە دوو ڕستەی سۆرانی بنووسە، پاشان نمرە بدە بە ئەوەی چەند لە ڕووی ماناوە لە یەک دەچن.</p>
+    <div class="tally"><span>کۆی جووتەکان: <b id="total">—</b></span><span>ئەوانەی تۆ لەم ئامێرەدا: <b id="mine">٠</b></span></div>
+  </header>
+
+  <form class="card" id="form" novalidate>
+    <div class="words-head">
+      <span class="label">وشەکانی ئەم جووتە</span>
+      <button type="button" id="shuffle">سێ وشەی تر</button>
+    </div>
+    <div class="words" id="words" aria-live="polite"></div>
+    <p class="rule">مەرج: هەر ڕستەیەک لانیکەم یەکێک لەم وشانەی تێدا بێت، و هەر سێ وشەکە لە هەردوو ڕستەکەدا پێکەوە بەکار بهێنرێن. وشەکان دەتوانن پاشگریان پێوە بێت، بۆ نموونە «کتێبەکانمان».</p>
+
+    <div class="field">
+      <label for="s1">ڕستەی یەکەم</label>
+      <textarea id="s1" rows="2" maxlength="400" placeholder="بۆ نموونە: مامۆستاکە کتێبێکی نوێی هێنا بۆ قوتابخانە."></textarea>
+    </div>
+    <div class="field">
+      <label for="s2">ڕستەی دووەم</label>
+      <textarea id="s2" rows="2" maxlength="400" placeholder="بۆ نموونە: کتێبێکی نوێ لەلایەن مامۆستاوە هێنرایە قوتابخانە."></textarea>
+    </div>
+
+    <fieldset>
+      <legend>ئەم دوو ڕستەیە چەند لە ڕووی ماناوە لە یەک دەچن؟</legend>
+      <div class="scale" id="scale"></div>
+      <div class="scale-desc" id="scaleDesc">نمرەیەک هەڵبژێرە.</div>
+    </fieldset>
+
+    <div class="trap" aria-hidden="true"><label for="website">Website</label><input id="website" tabindex="-1" autocomplete="off"></div>
+
+    <div id="msg" hidden></div>
+
+    <div class="actions">
+      <button type="submit" class="primary" id="submit">ناردن</button>
+      <span class="kbd">Ctrl + Enter</span>
+    </div>
+    <p class="consent">ئەم ڕستانە بۆ توێژینەوەیەکی دەرچوونی بەشی ئەندازیاریی نەرمەکاڵا، زانکۆی کۆیە، بەکاردێن. تکایە ناو یان هیچ زانیارییەکی کەسی مەنووسە.</p>
+  </form>
+
+  <section class="card">
+    <h2>دوایین جووتەکانی تۆ لەم ئامێرەدا</h2>
+    <div class="list" id="recent"><p class="empty">هێشتا هیچ جووتێکت نەناردووە. یەکەم جووتەکەت لە سەرەوە بنووسە.</p></div>
+  </section>
+</div>
+
+<script>
+// Paste the Web app URL from Apps Script (Deploy > Web app) here:
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzo7NWGW4gBh4Xl1YOn8ROMdWm-Szurs-q8Yrcn1fXniBn0WSjxriQgnxMvNpquEDvnMg/exec";
+
+const WORDS = [
+  "مامۆستا","قوتابی","قوتابخانە","زانکۆ","کتێب","پێنووس","وانە","تاقیکردنەوە","کتێبخانە","پۆل",
+  "باوک","دایک","برا","خوشک","منداڵ","هاوڕێ","دراوسێ","خێزان","باپیر","داپیر",
+  "ماڵ","ژوور","دەرگا","پەنجەرە","مێز","کورسی","چێشتخانە","باخچە","شەقام","بازاڕ",
+  "شار","گوند","چیا","ڕووبار","دەریا","دارستان","کێڵگە","پرد","مزگەوت","نەخۆشخانە",
+  "دکتۆر","نەخۆش","دەرمان","تەندروستی","ئاو","نان","شیر","گۆشت","برنج","میوە",
+  "سێو","هەنار","ترێ","تەماتە","پیاز","باران","بەفر","خۆر","مانگ","ئەستێرە",
+  "هەور","ئاسمان","زستان","هاوین","بەهار","پاییز","ئۆتۆمبێل","پاس","فڕۆکە","پاسکیل",
+  "ڕێگا","مۆبایل","کۆمپیوتەر","ئینتەرنێت","تەلەفزیۆن","ڕۆژنامە","هەواڵ","وێنە","گۆرانی","فیلم",
+  "یاری","تۆپ","تیم","وەرزش","کار","پارە","دوکان","کرێکار","جوتیار","فرۆشیار",
+  "پشیلە","سەگ","ئەسپ","باڵندە","ماسی","مەڕ","گوڵ","درەخت","ڕۆژ","شەو",
+  "بەیانی","ئێوارە","هەفتە","ساڵ","کات","جەژن","ئاهەنگ","دیاری","نامە","پرسیار",
+  "وەڵام","گەورە","بچووک","جوان","خێرا","هێواش","گەرم","سارد","نوێ","کۆن",
+  "باش","خۆش","درێژ","کورت","بەرز","پاک","سەخت","ئاسان","دڵخۆش","ماندوو",
+  "برسی","ئازا","زیرەک","دەوڵەمەند","هەژار","نزیک","دوور","ڕووناک","تاریک","بێدەنگ"
+];
+
+const SCALE = [
+  [0, "پەیوەندییان نییە", "دوو ڕستەی تەواو جیاوازن، بابەتیشیان جیاوازە."],
+  [1, "تەنیا هەمان بابەت", "مانایان جیاوازە، بەڵام باسی هەمان بابەت دەکەن."],
+  [2, "هەندێ وردەکاری هاوبەش", "هاومانا نین، بەڵام هەندێ وردەکارییان هاوبەشە."],
+  [3, "بە نزیکی هاومانا", "بە نزیکی هەمان مانایان هەیە، بەڵام زانیارییەکی گرنگ جیاوازە یان کەمە."],
+  [4, "زۆربەی مانا هەمانە", "زۆربەی مانایان هەمانە، تەنیا وردەکارییەکی بچووک جیاوازە."],
+  [5, "تەواو هاومانا", "هەمان مانایان هەیە، تەنیا بە وشەی جیاواز نووسراون."]
+];
+
+const $ = id => document.getElementById(id);
+const els = { words: $("words"), s1: $("s1"), s2: $("s2"), scale: $("scale"), desc: $("scaleDesc"), msg: $("msg"), submit: $("submit"), form: $("form") };
+
+// Same letter, different Unicode: fold Arabic forms to Kurdish ones and drop marks before comparing.
+function norm(s) {
+  return s.replace(/ك/g, "ک").replace(/[يى]/g, "ی").replace(/ة/g, "ە")
+          .replace(/[ً-ٰٟـ‌‍‏‎]/g, "");
+}
+function tokens(s) { return norm(s).split(/[\s،؛؟.,!?:;"'«»()\[\]\-–—\/]+/).filter(Boolean); }
+function uses(sentence, word) { const w = norm(word); return tokens(sentence).some(t => t.startsWith(w)); }
+
+const POOL = [...new Set(WORDS)].filter(w => w.length >= 3);
+let current = [];
+function pick3() {
+  const a = POOL.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  current = a.slice(0, 3);
+  renderWords();
+}
+function renderWords() {
+  els.words.replaceChildren(...current.map(w => {
+    const c = document.createElement("span");
+    const in1 = uses(els.s1.value, w), in2 = uses(els.s2.value, w);
+    c.className = "chip" + (in1 || in2 ? " used" : "");
+    c.textContent = w;
+    if (in1 || in2) {
+      const m = document.createElement("span");
+      m.className = "where";
+      m.textContent = [in1 ? "١" : "", in2 ? "٢" : ""].filter(Boolean).join(" · ");
+      c.append(m);
+    }
+    return c;
+  }));
+}
+
+SCALE.forEach(([n, short]) => {
+  const input = document.createElement("input");
+  input.type = "radio"; input.name = "score"; input.id = "score" + n; input.value = n;
+  const label = document.createElement("label");
+  label.htmlFor = input.id;
+  label.innerHTML = `<span class="num">${n}</span><span class="txt"></span>`;
+  label.querySelector(".txt").textContent = short;
+  input.addEventListener("change", () => { els.desc.textContent = SCALE[n][2]; });
+  els.scale.append(input, label);
+});
+
+function showMsg(kind, text) { els.msg.hidden = false; els.msg.className = "msg " + kind; els.msg.textContent = text; }
+function clearMsg() { els.msg.hidden = true; }
+
+function validate() {
+  const s1 = els.s1.value.trim(), s2 = els.s2.value.trim();
+  if (tokens(s1).length < 3 || tokens(s2).length < 3) return "هەر ڕستەیەک دەبێت لانیکەم سێ وشە بێت.";
+  if (norm(s1).replace(/\s+/g, " ") === norm(s2).replace(/\s+/g, " ")) return "دوو ڕستەکە وەک یەکن. ڕستەی دووەم بە شێوەیەکی تر بنووسە.";
+  if (!current.some(w => uses(s1, w))) return "ڕستەی یەکەم هیچ کام لە سێ وشەکەی تێدا نییە.";
+  if (!current.some(w => uses(s2, w))) return "ڕستەی دووەم هیچ کام لە سێ وشەکەی تێدا نییە.";
+  const missing = current.filter(w => !uses(s1, w) && !uses(s2, w));
+  if (missing.length) return "ئەم وشانە هێشتا بەکار نەهاتوون: " + missing.join("، ");
+  if (!document.querySelector('input[name="score"]:checked')) return "نمرەیەک لە ٠ تا ٥ هەڵبژێرە.";
+  return null;
+}
+
+els.s1.addEventListener("input", () => { renderWords(); clearMsg(); });
+els.s2.addEventListener("input", () => { renderWords(); clearMsg(); });
+$("shuffle").addEventListener("click", () => { pick3(); clearMsg(); });
+els.form.addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); els.form.requestSubmit(); } });
+
+pick3();
+
+
+// ---- sending to Google Sheets ----
+function store(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
+function save(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch {} }
+
+let contributor = store("contributor", null);
+if (!contributor) { contributor = "c" + Math.random().toString(36).slice(2, 10); save("contributor", contributor); }
+let recent = store("recent", []);
+let busy = false;
+
+function renderRecent() {
+  $("mine").textContent = store("mineCount", 0).toLocaleString("ckb-IQ");
+  const box = $("recent");
+  if (!recent.length) { box.innerHTML = '<p class="empty">هێشتا هیچ جووتێکت نەناردووە. یەکەم جووتەکەت لە سەرەوە بنووسە.</p>'; return; }
+  box.replaceChildren(...recent.map(v => {
+    const row = document.createElement("div"); row.className = "row";
+    row.style.gridTemplateColumns = "auto minmax(0, 1fr)";
+    const pill = document.createElement("span"); pill.className = "score-pill"; pill.textContent = v.score;
+    const pair = document.createElement("div"); pair.className = "pair";
+    const a = document.createElement("div"); a.textContent = v.sentence1;
+    const b = document.createElement("div"); b.className = "s2"; b.textContent = v.sentence2;
+    pair.append(a, b);
+    row.append(pill, pair);
+    return row;
+  }));
+}
+
+async function loadTotal() {
+  if (SCRIPT_URL.startsWith("PASTE")) return;
+  try {
+    const r = await fetch(SCRIPT_URL);
+    const j = await r.json();
+    if (j.ok) $("total").textContent = Number(j.total).toLocaleString("ckb-IQ");
+  } catch {}
+}
+
+els.form.addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = validate();
+  if (err) { showMsg("err", err); return; }
+  if (SCRIPT_URL.startsWith("PASTE")) { showMsg("err", "پەیجەکە هێشتا بە Google Sheet ەوە نەبەستراوە (SCRIPT_URL)."); return; }
+  if (busy) return;
+  busy = true; els.submit.disabled = true;
+  const item = {
+    sentence1: els.s1.value.trim(), sentence2: els.s2.value.trim(),
+    score: Number(document.querySelector('input[name="score"]:checked').value),
+    words: current.slice(), contributor, website: $("website").value
+  };
+  try {
+    const r = await fetch(SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(item) });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error);
+    if (j.total) $("total").textContent = Number(j.total).toLocaleString("ckb-IQ");
+    recent = [{ sentence1: item.sentence1, sentence2: item.sentence2, score: item.score }, ...recent].slice(0, 10);
+    save("recent", recent); save("mineCount", store("mineCount", 0) + 1);
+    renderRecent();
+    els.s1.value = ""; els.s2.value = "";
+    document.querySelectorAll('input[name="score"]').forEach(r => r.checked = false);
+    els.desc.textContent = "نمرەیەک هەڵبژێرە.";
+    pick3();
+    showMsg("ok", "نێردرا، سوپاس! جووتێکی تر بنووسە.");
+    els.s1.focus();
+  } catch {
+    showMsg("err", "نەنێردرا. ئینتەرنێتەکەت بپشکنە و دووبارە هەوڵ بدەرەوە.");
+  } finally { busy = false; els.submit.disabled = false; }
+});
+
+renderRecent();
+loadTotal();
+</script>
+</body>
+</html>
