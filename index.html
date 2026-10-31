@@ -163,7 +163,7 @@ h2 { font-size: 1rem; margin: 0; }
         <button type="button" id="shuffle">سێ وشەی تر</button>
       </div>
       <div class="words" id="words" aria-live="polite"></div>
-      <p class="rule">هەر ڕستەیەک لانیکەم یەکێک لەم وشانەی تێدا بێت، و هەر سێ وشەکە لە هەردوو ڕستەکەدا بەکار بهێنرێن. وشەکان دەتوانن پاشگریان پێوە بێت، بۆ نموونە «کتێبەکانمان».</p>
+      <p class="rule">هەر سێ وشەکە بەکار بهێنە، لە یەک ڕستەدا یان لە هەردووکیاندا. ڕستەکەی تر دەتوانێت بە وشەی خۆت بێت. وشەکان دەتوانن پاشگریان پێوە بێت، بۆ نموونە «کتێبەکانمان».</p>
     </section>
 
     <section class="card">
@@ -410,8 +410,6 @@ function validate() {
   const s1 = els.s1.value.trim(), s2 = els.s2.value.trim();
   if (tokens(s1).length < 3 || tokens(s2).length < 3) return "هەر ڕستەیەک دەبێت لانیکەم سێ وشە بێت.";
   if (norm(s1).replace(/\s+/g, " ") === norm(s2).replace(/\s+/g, " ")) return "دوو ڕستەکە وەک یەکن. ڕستەی دووەم بە شێوەیەکی تر بنووسە.";
-  if (!current.some(w => uses(s1, w))) return "ڕستەی یەکەم هیچ کام لە سێ وشەکەی تێدا نییە.";
-  if (!current.some(w => uses(s2, w))) return "ڕستەی دووەم هیچ کام لە سێ وشەکەی تێدا نییە.";
   const missing = current.filter(w => !uses(s1, w) && !uses(s2, w));
   if (missing.length) return "ئەم وشانە هێشتا بەکار نەهاتوون: " + missing.join("، ");
   if (score === null) return "پرسیارەکانی بەشی ٣ وەڵام بدەرەوە تا نمرەکە دیاری بکرێت.";
