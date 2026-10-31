@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;700&family=Noto+Naskh+Arabic:wght@400;600&display=swap">
 <style>
-/* Layout: one centered column — word card, two sentence fields, 0–5 scale, then your recent pairs and the group tally. */
+/* Layout: one column — words, two sentences, a 3-question scoring guide, then recent pairs. */
 :root {
   --bg: #f2f5f3;
   --surface: #ffffff;
@@ -17,6 +17,7 @@
   --line: #d5ded9;
   --accent: #1d6b55;
   --accent-ink: #ffffff;
+  --accent-soft: #e2efe9;
   --sun: #e2a72e;
   --sun-soft: #fbf0d6;
   --ok: #1d7a47;
@@ -29,162 +30,187 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0f1614; --surface: #17211e; --ink: #e5ece9; --muted: #98a8a1; --line: #2b3934;
-    --accent: #4fb795; --accent-ink: #0b1411; --sun: #f0bf55; --sun-soft: #3a2f16;
+    --accent: #4fb795; --accent-ink: #0b1411; --accent-soft: #1b2e27; --sun: #f0bf55; --sun-soft: #3a2f16;
     --ok: #6fd39a; --ok-soft: #173326; --bad: #f08a7c; --bad-soft: #3d1e1a;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0f1614; --surface: #17211e; --ink: #e5ece9; --muted: #98a8a1; --line: #2b3934;
-  --accent: #4fb795; --accent-ink: #0b1411; --sun: #f0bf55; --sun-soft: #3a2f16;
+  --accent: #4fb795; --accent-ink: #0b1411; --accent-soft: #1b2e27; --sun: #f0bf55; --sun-soft: #3a2f16;
   --ok: #6fd39a; --ok-soft: #173326; --bad: #f08a7c; --bad-soft: #3d1e1a;
   color-scheme: dark;
 }
-html, body { margin: 0; }
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+html, body { margin: 0; max-width: 100%; overflow-x: hidden; }
 [hidden] { display: none !important; }
-body { background: var(--bg); color: var(--ink); font-family: var(--ui); font-size: 15px; }
+body { background: var(--bg); color: var(--ink); font-family: var(--ui); font-size: 15px; line-height: 1.7; }
+
 .wrap {
-  direction: rtl; max-width: 720px; margin: 0 auto;
-  padding-block: 28px 56px;
+  max-width: 680px; margin: 0 auto;
+  padding-block: 20px 48px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  display: grid; gap: 22px;
+  display: grid; gap: 16px;
 }
-header { display: grid; gap: 6px; }
-h1 { font-size: 1.6rem; font-weight: 700; margin: 0; text-wrap: balance; }
+.wrap > * { min-width: 0; }
+header { display: grid; gap: 4px; }
+h1 { font-size: 1.45rem; font-weight: 700; margin: 0; text-wrap: balance; }
 .lead { color: var(--muted); margin: 0; line-height: 1.9; }
-.tally { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: .9rem; color: var(--muted); }
+.tally { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: .88rem; color: var(--muted); }
 .tally b { color: var(--ink); font-variant-numeric: tabular-nums; }
 
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 14px; min-width: 0; }
+.step-title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1rem; margin: 0; }
+.step-num { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: .85rem; flex: none; }
 
-.words-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.label { font-size: .78rem; letter-spacing: .04em; color: var(--muted); font-weight: 500; }
-.words { display: flex; flex-wrap: wrap; gap: 10px; }
+.words-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.words { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
-  font-family: var(--text); font-size: 1.45rem; font-weight: 600; line-height: 1.5;
-  padding: 4px 16px 6px; border-radius: 999px; background: var(--sun-soft); color: var(--ink);
-  border: 2px solid var(--sun); display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--text); font-size: 1.3rem; font-weight: 600; line-height: 1.5;
+  padding: 2px 14px 4px; border-radius: 999px; background: var(--sun-soft); color: var(--ink);
+  border: 2px solid var(--sun); display: inline-flex; align-items: center; gap: 6px; max-width: 100%;
 }
 .chip.used { background: var(--ok-soft); border-color: var(--ok); }
-.chip .where { font-family: var(--ui); font-size: .72rem; color: var(--ok); font-weight: 700; }
+.chip .where { font-family: var(--ui); font-size: .7rem; color: var(--ok); font-weight: 700; }
+.rule { margin: 0; font-size: .85rem; color: var(--muted); line-height: 1.9; }
 
-.rule { margin: 0; font-size: .88rem; color: var(--muted); line-height: 1.9; }
-
-.field { display: grid; gap: 6px; }
+.field { display: grid; gap: 4px; min-width: 0; }
 .field label { font-weight: 500; font-size: .92rem; }
 textarea {
-  font-family: var(--text); font-size: 1.2rem; line-height: 1.8; direction: rtl;
-  width: 100%; box-sizing: border-box; min-height: 84px; resize: vertical;
-  padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--line);
+  font-family: var(--text); font-size: 1.15rem; line-height: 1.8;
+  width: 100%; min-height: 76px; resize: vertical;
+  padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line);
   background: var(--bg); color: var(--ink);
 }
 textarea:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); border-color: var(--accent); }
-.hint { font-size: .8rem; color: var(--muted); min-height: 1.2em; }
 
-fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; }
-legend { font-weight: 500; font-size: .92rem; padding: 0; margin-bottom: 8px; }
-.scale { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
-.scale input { position: absolute; opacity: 0; pointer-events: none; }
-.scale label {
-  display: grid; justify-items: center; gap: 2px; padding: 10px 4px; cursor: pointer;
-  border: 1.5px solid var(--line); border-radius: 10px; background: var(--bg); text-align: center;
+/* scoring guide */
+.compare { display: grid; gap: 6px; padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px dashed var(--line); }
+.compare div { font-family: var(--text); font-size: 1.02rem; overflow-wrap: anywhere; }
+.compare .tag { font-family: var(--ui); font-size: .72rem; color: var(--muted); margin-left: 6px; }
+.compare .empty { color: var(--muted); font-family: var(--ui); font-size: .85rem; }
+.progress { display: flex; gap: 6px; }
+.progress span { flex: 1; height: 5px; border-radius: 3px; background: var(--line); }
+.progress span.on { background: var(--accent); }
+.question { font-weight: 700; font-size: 1.05rem; margin: 0; line-height: 1.8; }
+.qhint { margin: 0; font-size: .85rem; color: var(--muted); line-height: 1.9; }
+.options { display: grid; gap: 8px; }
+.opt {
+  display: grid; gap: 2px; text-align: right; width: 100%; min-height: 48px;
+  padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--line);
+  background: var(--surface); color: var(--ink); cursor: pointer; font-family: var(--ui);
 }
-.scale .num { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-.scale .txt { font-size: .7rem; color: var(--muted); line-height: 1.5; }
-.scale input:checked + label { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); }
-.scale input:focus-visible + label { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); }
-.scale-desc { font-size: .85rem; color: var(--muted); min-height: 1.6em; line-height: 1.8; }
+.opt:hover { border-color: var(--accent); }
+.opt:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); outline-offset: 2px; }
+.opt b { font-size: .98rem; }
+.opt small { font-family: var(--text); font-size: .95rem; color: var(--muted); overflow-wrap: anywhere; }
+.guide-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-button {
-  font-family: var(--ui); font-size: .92rem; font-weight: 500; cursor: pointer;
-  border-radius: 10px; padding: 10px 18px; border: 1.5px solid var(--line);
-  background: var(--surface); color: var(--ink);
-}
-button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.result { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; align-items: center; padding: 14px; border-radius: 12px; background: var(--accent-soft); border: 1.5px solid var(--accent); }
+.result .big { grid-row: span 2; font-size: 2.6rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: var(--accent); }
+.result .name { font-weight: 700; }
+.result .why { font-size: .85rem; color: var(--muted); }
+
+details { border-top: 1px solid var(--line); padding-top: 10px; }
+summary { cursor: pointer; font-size: .9rem; font-weight: 500; color: var(--accent); }
+.cases { display: grid; gap: 8px; margin-top: 10px; }
+.case { display: grid; gap: 2px; padding: 8px 10px; border-radius: 8px; background: var(--bg); }
+.case b { font-size: .88rem; }
+.case span { font-family: var(--text); font-size: .95rem; overflow-wrap: anywhere; }
+.case em { font-style: normal; font-size: .8rem; color: var(--muted); }
+
+button { font-family: var(--ui); font-size: .92rem; font-weight: 500; cursor: pointer; border-radius: 10px; padding: 10px 16px; min-height: 44px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 700; width: 100%; font-size: 1rem; }
 button:disabled { opacity: .5; cursor: not-allowed; }
 button:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); outline-offset: 2px; }
-.kbd { font-size: .78rem; color: var(--muted); }
 
 .msg { border-radius: 10px; padding: 10px 14px; font-size: .9rem; line-height: 1.8; }
 .msg.err { background: var(--bad-soft); color: var(--bad); }
 .msg.ok { background: var(--ok-soft); color: var(--ok); }
+.consent { font-size: .8rem; color: var(--muted); line-height: 1.9; margin: 0; }
 
-h2 { font-size: 1.05rem; margin: 0; }
-.list { display: grid; gap: 0; }
-.row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 12px 0; border-top: 1px solid var(--line); }
+/* visually hidden field that only bots fill in; no offset so it never widens the page */
+.trap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+h2 { font-size: 1rem; margin: 0; }
+.list { display: grid; }
+.row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
 .row:first-child { border-top: 0; }
-.score-pill { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 2.2em; text-align: center; padding: 2px 8px; border-radius: 8px; background: var(--sun-soft); }
-.pair { font-family: var(--text); font-size: 1.05rem; line-height: 1.8; min-width: 0; overflow-wrap: anywhere; }
+.score-pill { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 2em; text-align: center; padding: 2px 8px; border-radius: 8px; background: var(--sun-soft); }
+.pair { font-family: var(--text); font-size: 1rem; line-height: 1.8; overflow-wrap: anywhere; }
 .pair .s2 { color: var(--muted); }
-.row button { padding: 4px 10px; font-size: .78rem; }
-.empty { color: var(--muted); font-size: .9rem; line-height: 1.9; margin: 0; }
+.empty-note { color: var(--muted); font-size: .88rem; margin: 0; }
 
-.people { display: grid; gap: 8px; }
-.person { display: flex; align-items: center; gap: 10px; }
-.person img { width: 26px; height: 26px; border-radius: 50%; }
-.person .n { flex: 1; min-width: 0; }
-.person .c { font-variant-numeric: tabular-nums; font-weight: 700; }
-
-@media (max-width: 520px) {
-  .scale { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .chip { font-size: 1.25rem; }
-}
 @media (prefers-reduced-motion: no-preference) {
-  .chip { transition: background-color .2s, border-color .2s; }
+  .chip, .opt { transition: background-color .15s, border-color .15s; }
 }
-</style>
-<style>
-.consent { font-size: .82rem; color: var(--muted); line-height: 1.9; margin: 0; }
-.trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <h1>کۆکەرەوەی جووتە ڕستە</h1>
-    <p class="lead">بە بەکارهێنانی ئەو سێ وشەیەی خوارەوە دوو ڕستەی سۆرانی بنووسە، پاشان نمرە بدە بە ئەوەی چەند لە ڕووی ماناوە لە یەک دەچن.</p>
-    <div class="tally"><span>کۆی جووتەکان: <b id="total">—</b></span><span>ئەوانەی تۆ لەم ئامێرەدا: <b id="mine">٠</b></span></div>
+    <p class="lead">بە سێ وشەی خوارەوە دوو ڕستەی سۆرانی بنووسە، پاشان بە وەڵامدانەوەی سێ پرسیار نمرەی لێکچوونیان دیاری بکە.</p>
+    <div class="tally"><span>کۆی جووتەکان: <b id="total">—</b></span><span>هی تۆ لەم ئامێرەدا: <b id="mine">٠</b></span></div>
   </header>
 
-  <form class="card" id="form" novalidate>
-    <div class="words-head">
-      <span class="label">وشەکانی ئەم جووتە</span>
-      <button type="button" id="shuffle">سێ وشەی تر</button>
-    </div>
-    <div class="words" id="words" aria-live="polite"></div>
-    <p class="rule">مەرج: هەر ڕستەیەک لانیکەم یەکێک لەم وشانەی تێدا بێت، و هەر سێ وشەکە لە هەردوو ڕستەکەدا پێکەوە بەکار بهێنرێن. وشەکان دەتوانن پاشگریان پێوە بێت، بۆ نموونە «کتێبەکانمان».</p>
+  <form id="form" novalidate class="wrap" style="padding:0;gap:16px">
+    <section class="card">
+      <div class="words-head">
+        <h2 class="step-title"><span class="step-num">١</span>وشەکان</h2>
+        <button type="button" id="shuffle">سێ وشەی تر</button>
+      </div>
+      <div class="words" id="words" aria-live="polite"></div>
+      <p class="rule">هەر ڕستەیەک لانیکەم یەکێک لەم وشانەی تێدا بێت، و هەر سێ وشەکە لە هەردوو ڕستەکەدا بەکار بهێنرێن. وشەکان دەتوانن پاشگریان پێوە بێت، بۆ نموونە «کتێبەکانمان».</p>
+    </section>
 
-    <div class="field">
-      <label for="s1">ڕستەی یەکەم</label>
-      <textarea id="s1" rows="2" maxlength="400" placeholder="بۆ نموونە: مامۆستاکە کتێبێکی نوێی هێنا بۆ قوتابخانە."></textarea>
-    </div>
-    <div class="field">
-      <label for="s2">ڕستەی دووەم</label>
-      <textarea id="s2" rows="2" maxlength="400" placeholder="بۆ نموونە: کتێبێکی نوێ لەلایەن مامۆستاوە هێنرایە قوتابخانە."></textarea>
-    </div>
+    <section class="card">
+      <h2 class="step-title"><span class="step-num">٢</span>دوو ڕستە بنووسە</h2>
+      <div class="field">
+        <label for="s1">ڕستەی یەکەم</label>
+        <textarea id="s1" rows="2" maxlength="400" placeholder="بۆ نموونە: مامۆستاکە کتێبێکی نوێی هێنا بۆ قوتابخانە."></textarea>
+      </div>
+      <div class="field">
+        <label for="s2">ڕستەی دووەم</label>
+        <textarea id="s2" rows="2" maxlength="400" placeholder="بۆ نموونە: کتێبێکی نوێ لەلایەن مامۆستاوە هێنرایە قوتابخانە."></textarea>
+      </div>
+    </section>
 
-    <fieldset>
-      <legend>ئەم دوو ڕستەیە چەند لە ڕووی ماناوە لە یەک دەچن؟</legend>
-      <div class="scale" id="scale"></div>
-      <div class="scale-desc" id="scaleDesc">نمرەیەک هەڵبژێرە.</div>
-    </fieldset>
+    <section class="card" id="guide">
+      <h2 class="step-title"><span class="step-num">٣</span>نمرەی لێکچوون</h2>
+      <div class="compare" id="compare"></div>
+      <div id="wizard">
+        <div class="progress" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p class="question" id="question"></p>
+        <p class="qhint" id="qhint"></p>
+        <div class="options" id="options"></div>
+        <div class="guide-actions"><button type="button" id="back" hidden>گەڕانەوە</button></div>
+      </div>
+      <div id="resultBox" hidden>
+        <div class="result" aria-live="polite">
+          <span class="big" id="rScore"></span>
+          <span class="name" id="rName"></span>
+          <span class="why" id="rWhy"></span>
+        </div>
+        <div class="guide-actions" style="margin-top:8px"><button type="button" id="redo">دووبارە وەڵامدانەوە</button></div>
+      </div>
+      <details>
+        <summary>حاڵەتە قورسەکان: چۆن بڕیار بدەم؟</summary>
+        <div class="cases" id="cases"></div>
+      </details>
+    </section>
 
     <div class="trap" aria-hidden="true"><label for="website">Website</label><input id="website" tabindex="-1" autocomplete="off"></div>
-
     <div id="msg" hidden></div>
-
-    <div class="actions">
-      <button type="submit" class="primary" id="submit">ناردن</button>
-      <span class="kbd">Ctrl + Enter</span>
-    </div>
+    <button type="submit" class="primary" id="submit">ناردن</button>
     <p class="consent">ئەم ڕستانە بۆ توێژینەوەیەکی دەرچوونی بەشی ئەندازیاریی نەرمەکاڵا، زانکۆی کۆیە، بەکاردێن. تکایە ناو یان هیچ زانیارییەکی کەسی مەنووسە.</p>
   </form>
 
   <section class="card">
     <h2>دوایین جووتەکانی تۆ لەم ئامێرەدا</h2>
-    <div class="list" id="recent"><p class="empty">هێشتا هیچ جووتێکت نەناردووە. یەکەم جووتەکەت لە سەرەوە بنووسە.</p></div>
+    <div class="list" id="recent"><p class="empty-note">هێشتا هیچ جووتێکت نەناردووە.</p></div>
   </section>
 </div>
 
@@ -209,17 +235,58 @@ const WORDS = [
   "برسی","ئازا","زیرەک","دەوڵەمەند","هەژار","نزیک","دوور","ڕووناک","تاریک","بێدەنگ"
 ];
 
-const SCALE = [
-  [0, "پەیوەندییان نییە", "دوو ڕستەی تەواو جیاوازن، بابەتیشیان جیاوازە."],
-  [1, "تەنیا هەمان بابەت", "مانایان جیاوازە، بەڵام باسی هەمان بابەت دەکەن."],
-  [2, "هەندێ وردەکاری هاوبەش", "هاومانا نین، بەڵام هەندێ وردەکارییان هاوبەشە."],
-  [3, "بە نزیکی هاومانا", "بە نزیکی هەمان مانایان هەیە، بەڵام زانیارییەکی گرنگ جیاوازە یان کەمە."],
-  [4, "زۆربەی مانا هەمانە", "زۆربەی مانایان هەمانە، تەنیا وردەکارییەکی بچووک جیاوازە."],
-  [5, "تەواو هاومانا", "هەمان مانایان هەیە، تەنیا بە وشەی جیاواز نووسراون."]
+// The SemEval 0–5 similarity scale (Agirre et al.; Cer et al., 2017).
+const SCALE = {
+  5: ["تەواو هاومانان", "هەمان مانا، تەنیا وشەکان یان ڕیزبەندییان جیاوازە."],
+  4: ["زۆربەی مانا هەمانە", "تەنیا وردەکارییەکی بچووک و ناگرنگ جیاوازە."],
+  3: ["بە نزیکی هاومانان", "بەڵام زانیارییەکی گرنگ جیاوازە یان کەمە."],
+  2: ["هاومانا نین، بەڵام وردەکاریی هاوبەشیان هەیە", "ڕووداوەکە جیاوازە، بەڵام هەندێ بەشیان یەکە."],
+  1: ["تەنیا هەمان بابەت", "مانایان جیاوازە، بەڵام باسی هەمان بابەت دەکەن."],
+  0: ["پەیوەندییان نییە", "بابەتیشیان جیاوازە."]
+};
+
+// Three questions; each option either gives a score or moves to the next question.
+const STEPS = [
+  {
+    q: "ئایا هەردوو ڕستەکە باسی هەمان بابەت دەکەن؟",
+    hint: "بابەت واتە شتێکی گشتی وەک قوتابخانە، وەرزش، کەشوهەوا، خواردن.",
+    options: [
+      { label: "بەڵێ، هەمان بابەتە", ex: "تیمەکەمان بردیەوە ↔ تۆپی پێ لە کوردستان بەناوبانگە", next: 1, why: "هەمان بابەت" },
+      { label: "نەخێر، بابەتیان جیاوازە", ex: "من دەچمە قوتابخانە ↔ باران دەبارێت", score: 0, why: "بابەتی جیاواز" }
+    ]
+  },
+  {
+    q: "ئایا باسی هەمان ڕووداو دەکەن، و هەمان مانایان هەیە؟",
+    hint: "ئەگەر یەکێکیان نەفی بێت (هات ↔ نەهات)، یان کێ چی دەکات گۆڕابێت (سەگ پشیلەی ڕاونا ↔ پشیلە سەگی ڕاونا)، وەڵام «نەخێر» ە.",
+    options: [
+      { label: "بەڵێ، هەمان ڕووداو و هەمان مانا", ex: "ئەحمەد چووە بازاڕ و نانی کڕی ↔ ئەحمەد چووە بازاڕ", next: 2, why: "هەمان مانا" },
+      { label: "نەخێر، بەڵام هەندێ وردەکارییان هاوبەشە", ex: "ئەحمەد نانی کڕی ↔ ئەحمەد نانی خوارد", score: 2, why: "مانای جیاواز، وردەکاریی هاوبەش" },
+      { label: "نەخێر، تەنیا بابەتەکەیان یەکە", ex: "تیمەکەمان بردیەوە ↔ تۆپی پێ لە کوردستان بەناوبانگە", score: 1, why: "تەنیا هەمان بابەت" }
+    ]
+  },
+  {
+    q: "چ زانیارییەک لە نێوانیاندا جیاوازە یان کەمە؟",
+    hint: "زانیاریی گرنگ: کەس، ژمارە، کات، شوێن، یان بەشێکی سەرەکی لە ڕووداوەکە. زانیاریی بچووک: ئاوەڵناو یان وشەیەکی زیادە کە مانا ناگۆڕێت.",
+    options: [
+      { label: "هیچ، تەنیا وشەکان جیاوازن", ex: "من دەچمە قوتابخانە ↔ بەرەو قوتابخانە دەڕۆم", score: 5, why: "هیچ جیاوازییەکی مانا نییە" },
+      { label: "شتێکی بچووک و ناگرنگ", ex: "من ئێستا دەچمە قوتابخانە ↔ من دەچمە قوتابخانە", score: 4, why: "جیاوازییەکی بچووک" },
+      { label: "شتێکی گرنگ", ex: "سێ کتێبم کڕی ↔ پێنج کتێبم کڕی", score: 3, why: "جیاوازییەکی گرنگ" }
+    ]
+  }
+];
+
+const CASES = [
+  ["نەفی", "ئەو هات ↔ ئەو نەهات", "١ یان ٢: هەمان بابەت، بەڵام مانای پێچەوانە."],
+  ["ژمارە یان کاتی جیاواز", "سێ کتێبم کڕی ↔ پێنج کتێبم کڕی", "٣: زانیارییەکی گرنگ جیاوازە."],
+  ["کەسی جیاواز", "ئەحمەد نانی کڕی ↔ سارا نانی کڕی", "٢ یان ٣: کەسەکە بەشێکی گرنگە."],
+  ["کاتی کردار", "دەچم ↔ چووم", "٣ یان ٤: بەپێی ئەوەی کات چەند گرنگە."],
+  ["زانیاریی زیادە", "پیاوێک دەڕوات ↔ پیاوێکی بەتەمەن بە هێواشی دەڕوات", "٣ یان ٤."],
+  ["وشەی هاومانا", "ئۆتۆمبێل ↔ سەیارە", "٥: تەنیا وشەکە جیاوازە."],
+  ["هەمان وشە، مانای جیاواز", "سەگەکە پشیلەکەی ڕاونا ↔ پشیلەکە سەگەکەی ڕاونا", "١ یان ٢: کێ چی دەکات گۆڕاوە."]
 ];
 
 const $ = id => document.getElementById(id);
-const els = { words: $("words"), s1: $("s1"), s2: $("s2"), scale: $("scale"), desc: $("scaleDesc"), msg: $("msg"), submit: $("submit"), form: $("form") };
+const els = { words: $("words"), s1: $("s1"), s2: $("s2"), msg: $("msg"), submit: $("submit"), form: $("form") };
 
 // Same letter, different Unicode: fold Arabic forms to Kurdish ones and drop marks before comparing.
 function norm(s) {
@@ -253,17 +320,72 @@ function renderWords() {
   }));
 }
 
-SCALE.forEach(([n, short]) => {
-  const input = document.createElement("input");
-  input.type = "radio"; input.name = "score"; input.id = "score" + n; input.value = n;
-  const label = document.createElement("label");
-  label.htmlFor = input.id;
-  label.innerHTML = `<span class="num">${n}</span><span class="txt"></span>`;
-  label.querySelector(".txt").textContent = short;
-  input.addEventListener("change", () => { els.desc.textContent = SCALE[n][2]; });
-  els.scale.append(input, label);
-});
+// ---- scoring guide ----
+let stepIndex = 0, path = [], score = null;
 
+function renderCompare() {
+  const box = $("compare"), a = els.s1.value.trim(), b = els.s2.value.trim();
+  if (!a && !b) { box.innerHTML = '<span class="empty">سەرەتا هەردوو ڕستەکە بنووسە، پاشان ئەم پرسیارانە وەڵام بدەرەوە.</span>'; return; }
+  box.replaceChildren(...[[a, "١"], [b, "٢"]].map(([t, n]) => {
+    const d = document.createElement("div");
+    const tag = document.createElement("span"); tag.className = "tag"; tag.textContent = "ڕستەی " + n;
+    d.append(tag, document.createTextNode(t || "…"));
+    return d;
+  }));
+}
+
+function renderStep() {
+  const step = STEPS[stepIndex];
+  $("wizard").hidden = false; $("resultBox").hidden = true;
+  document.querySelectorAll(".progress span").forEach((s, i) => s.classList.toggle("on", i <= stepIndex));
+  $("question").textContent = step.q;
+  $("qhint").textContent = step.hint;
+  $("back").hidden = stepIndex === 0;
+  $("options").replaceChildren(...step.options.map(o => {
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "opt";
+    const b = document.createElement("b"); b.textContent = o.label;
+    const s = document.createElement("small"); s.textContent = "نموونە: " + o.ex;
+    btn.append(b, s);
+    btn.addEventListener("click", () => choose(o));
+    return btn;
+  }));
+}
+
+function choose(o) {
+  if (!els.s1.value.trim() || !els.s2.value.trim()) { showMsg("err", "سەرەتا هەردوو ڕستەکە بنووسە."); return; }
+  clearMsg();
+  path.push(o.why);
+  if (o.score !== undefined) { score = o.score; renderResult(); }
+  else { stepIndex = o.next; renderStep(); }
+}
+
+function renderResult() {
+  $("wizard").hidden = true; $("resultBox").hidden = false;
+  $("rScore").textContent = score;
+  $("rName").textContent = SCALE[score][0] + ": " + SCALE[score][1];
+  $("rWhy").textContent = "بڕیارەکانت: " + path.join(" ← ");
+}
+
+function resetGuide() { stepIndex = 0; path = []; score = null; renderStep(); }
+
+$("back").addEventListener("click", () => {
+  path.pop();
+  stepIndex = stepIndex === 2 ? 1 : 0;
+  renderStep();
+});
+$("redo").addEventListener("click", resetGuide);
+
+$("cases").replaceChildren(...CASES.map(([t, ex, s]) => {
+  const d = document.createElement("div"); d.className = "case";
+  const b = document.createElement("b"); b.textContent = t;
+  const e = document.createElement("span"); e.textContent = ex;
+  const m = document.createElement("em"); m.textContent = "نمرە: " + s;
+  d.append(b, e, m);
+  return d;
+}));
+
+// ---- validation and messages ----
 function showMsg(kind, text) { els.msg.hidden = false; els.msg.className = "msg " + kind; els.msg.textContent = text; }
 function clearMsg() { els.msg.hidden = true; }
 
@@ -275,17 +397,17 @@ function validate() {
   if (!current.some(w => uses(s2, w))) return "ڕستەی دووەم هیچ کام لە سێ وشەکەی تێدا نییە.";
   const missing = current.filter(w => !uses(s1, w) && !uses(s2, w));
   if (missing.length) return "ئەم وشانە هێشتا بەکار نەهاتوون: " + missing.join("، ");
-  if (!document.querySelector('input[name="score"]:checked')) return "نمرەیەک لە ٠ تا ٥ هەڵبژێرە.";
+  if (score === null) return "پرسیارەکانی بەشی ٣ وەڵام بدەرەوە تا نمرەکە دیاری بکرێت.";
   return null;
 }
 
-els.s1.addEventListener("input", () => { renderWords(); clearMsg(); });
-els.s2.addEventListener("input", () => { renderWords(); clearMsg(); });
+function onSentenceInput() {
+  renderWords(); renderCompare(); clearMsg();
+  if (score !== null) { resetGuide(); showMsg("err", "ڕستەکان گۆڕدران، بۆیە نمرەکە سڕایەوە. پرسیارەکانی بەشی ٣ دووبارە وەڵام بدەرەوە."); }
+}
+els.s1.addEventListener("input", onSentenceInput);
+els.s2.addEventListener("input", onSentenceInput);
 $("shuffle").addEventListener("click", () => { pick3(); clearMsg(); });
-els.form.addEventListener("keydown", e => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); els.form.requestSubmit(); } });
-
-pick3();
-
 
 // ---- sending to Google Sheets ----
 function store(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
@@ -299,10 +421,9 @@ let busy = false;
 function renderRecent() {
   $("mine").textContent = store("mineCount", 0).toLocaleString("ckb-IQ");
   const box = $("recent");
-  if (!recent.length) { box.innerHTML = '<p class="empty">هێشتا هیچ جووتێکت نەناردووە. یەکەم جووتەکەت لە سەرەوە بنووسە.</p>'; return; }
+  if (!recent.length) { box.innerHTML = '<p class="empty-note">هێشتا هیچ جووتێکت نەناردووە.</p>'; return; }
   box.replaceChildren(...recent.map(v => {
     const row = document.createElement("div"); row.className = "row";
-    row.style.gridTemplateColumns = "auto minmax(0, 1fr)";
     const pill = document.createElement("span"); pill.className = "score-pill"; pill.textContent = v.score;
     const pair = document.createElement("div"); pair.className = "pair";
     const a = document.createElement("div"); a.textContent = v.sentence1;
@@ -314,7 +435,6 @@ function renderRecent() {
 }
 
 async function loadTotal() {
-  if (SCRIPT_URL.startsWith("PASTE")) return;
   try {
     const r = await fetch(SCRIPT_URL);
     const j = await r.json();
@@ -326,12 +446,10 @@ els.form.addEventListener("submit", async e => {
   e.preventDefault();
   const err = validate();
   if (err) { showMsg("err", err); return; }
-  if (SCRIPT_URL.startsWith("PASTE")) { showMsg("err", "پەیجەکە هێشتا بە Google Sheet ەوە نەبەستراوە (SCRIPT_URL)."); return; }
   if (busy) return;
   busy = true; els.submit.disabled = true;
   const item = {
-    sentence1: els.s1.value.trim(), sentence2: els.s2.value.trim(),
-    score: Number(document.querySelector('input[name="score"]:checked').value),
+    sentence1: els.s1.value.trim(), sentence2: els.s2.value.trim(), score,
     words: current.slice(), contributor, website: $("website").value
   };
   try {
@@ -343,16 +461,17 @@ els.form.addEventListener("submit", async e => {
     save("recent", recent); save("mineCount", store("mineCount", 0) + 1);
     renderRecent();
     els.s1.value = ""; els.s2.value = "";
-    document.querySelectorAll('input[name="score"]').forEach(r => r.checked = false);
-    els.desc.textContent = "نمرەیەک هەڵبژێرە.";
-    pick3();
+    pick3(); renderCompare(); resetGuide();
     showMsg("ok", "نێردرا، سوپاس! جووتێکی تر بنووسە.");
-    els.s1.focus();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   } catch {
     showMsg("err", "نەنێردرا. ئینتەرنێتەکەت بپشکنە و دووبارە هەوڵ بدەرەوە.");
   } finally { busy = false; els.submit.disabled = false; }
 });
 
+pick3();
+renderCompare();
+renderStep();
 renderRecent();
 loadTotal();
 </script>
